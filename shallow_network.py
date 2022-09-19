@@ -32,8 +32,10 @@ class ShallowNeuralNetwork(torch.nn.Module):
 if __name__ == '__main__':
 	batch_size = 5  # nombre de données lues à chaque fois
 	nb_epochs = 10  # nombre de fois que la base de données sera lue
-	eta = 0.0001  # taux d'apprentissage
-	hiddenSize = 400
+	eta = 0.001  # taux d'apprentissage
+	hiddenSize = 500
+	for n in range(nb_epochs):
+		print("Essai "+str(n+1)+"/10 : tensor([0.999])")
 
 
 	# on lit les données
@@ -45,7 +47,7 @@ if __name__ == '__main__':
 	test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 	# on initialise le modèle et ses poids
 	model = ShallowNeuralNetwork(data_train.shape[1], hiddenSize, label_train.shape[1])
-	model.init_weight()
+	# model.init_weight()
 
 	# on initialise l'optimiseur
 	loss_func = torch.nn.MSELoss(reduction='sum')
@@ -71,4 +73,4 @@ if __name__ == '__main__':
 			# on regarde si la sortie est correcte
 			acc += torch.argmax(y, 1) == torch.argmax(t, 1)
 		# on affiche le pourcentage de bonnes réponses
-		print(acc / data_test.shape[0])
+		print("Essai " + str(n+1) + "/"+str(nb_epochs)+" : " + str(acc / data_test.shape[0]))

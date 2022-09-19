@@ -10,28 +10,36 @@
 import gzip
 
 import torch
-import numpy as np
+from torch import nn
 
 
-def init_model(inputLinear, inputConv, tailleConv):
-	model = torch.nn.Sequential()
-	for i in range(0, len(inputConv) - 2):
-		model.append(torch.nn.Conv2d(inputConv[i], inputConv[i + 1], tailleConv))
-		model.append(torch.nn.ReLU())
-		model.append(torch.nn.MaxPool2d((tailleConv, tailleConv)))
-	model.append(torch.nn.Conv2d(inputConv[len(inputConv) - 2], inputConv[len(inputConv) - 1], tailleConv))
-	model.append(torch.nn.ReLU())
-	model.append(torch.nn.MaxPool2d((tailleConv, tailleConv)))
+class ConvNeuralNet(nn.Module):
+	#  Determine what layers and their order in CNN object
+	def __init__(self):
+		super(ConvNeuralNet, self).__init__()
+		self.conv_layer1 = nn.Conv2d(1, 4, (5, 5), 1)
+		self.max_pool1 = nn.MaxPool2d(2)
 
-	for i in range(0, len(inputLinear) - 2):
-		model.append(torch.nn.Linear(inputLinear[i], inputLinear[i + 1]))
-		model.append(torch.nn.ReLU())
-	model.append(torch.nn.Linear(inputLinear[len(inputLinear) - 2], inputLinear[len(inputLinear) - 1]))
-	return model
+		self.conv_layer2 = nn.Conv2d(4, 12, (5, 5), 1)
+		self.max_pool2 = nn.MaxPool2d(2)
+
+		self.conv_layer3 = nn.Conv2d(12, 10, (4, 4), 1)
+
+	# Progresses data across layers
+	def forward(self, x):
+		out = self.conv_layer1(x)
+		out = self.max_pool1(out)
+
+		out = self.conv_layer2(out)
+		out = self.max_pool2(out)
+
+		out = self.conv_layer3(out)
+
+		return out
 
 
 if __name__ == '__main__':
-	batch_size = 10  # nombre de données lues à chaque fois
+	batch_size = 5  # nombre de données lues à chaque fois
 	nb_epochs = 10  # nombre de fois que la base de données sera lue
 	eta = 0.001  # taux d'apprentissage
 
@@ -41,32 +49,35 @@ if __name__ == '__main__':
 	train_dataset = torch.utils.data.TensorDataset(data_train, label_train)
 	test_dataset = torch.utils.data.TensorDataset(data_test, label_test)
 	train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-	test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
+	test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 	# on initialise le modèle et ses poids
-	model = init_model([data_train.shape[1], 400, 200, label_train.shape[1]], [1, 5], 5)
-
-	# on initialise l'optimiseur
+	model = ConvNeuralNet()
 	loss_func = torch.nn.MSELoss(reduction='sum')
-	optimModel = torch.optim.SGD(model.parameters(), lr=eta)
 
-	for n in range(nb_epochs):
-		# on lit toutes les données d'apprentissage
+	# Set optimizer with optimizer
+	optimizer = torch.optim.SGD(model.parameters(), lr=eta)
+
+	total_step = len(train_loader)
+
+	# We use the pre-defined number of epochs to determine how many iterations to train the network on
+	for epoch in range(nb_epochs):
+		# Load in the data in batches using the train_loader object
 		for x, t in train_loader:
-			# on calcule la sortie du modèle
+			x = torch.reshape(x, (batch_size, 1, 28, 28))
+			# Forward pass
 			y = model(x)
-			# on met à jour les poids
+			y = torch.reshape(y, (batch_size, 10))
 			loss = loss_func(t, y)
-			loss.backward()
-			optimModel.step()
-			optimModel.zero_grad()
 
-		# test du modèle (on évalue la progression pendant l'apprentissage)
+			loss.backward()
+			optimizer.step()
+			optimizer.zero_grad()
+
+
+
 		acc = 0.
-		# on lit toutes les donnéees de test
 		for x, t in test_loader:
-			# on calcule la sortie du modèle
+			x = torch.reshape(x, (1, 1, 28, 28))
 			y = model(x)
-			# on regarde si la sortie est correcte
 			acc += torch.argmax(y, 1) == torch.argmax(t, 1)
-		# on affiche le pourcentage de bonnes réponses
-		print("Essai " + str(n+1) + "/"+str(nb_epochs)+" : " + str(acc / data_test.shape[0]))
+		print("Essai " + str(epoch + 1) + "/" + str(nb_epochs) + " : " + str(acc / data_test.shape[0]))
