@@ -17,25 +17,19 @@ class ConvNeuralNet(nn.Module):
 	#  Determine what layers and their order in CNN object
 	def __init__(self):
 		super(ConvNeuralNet, self).__init__()
-		self.conv_layer1 = nn.Conv2d(1, 4, (5, 5), 1)
-		self.max_pool1 = nn.MaxPool2d(2)
-
-		self.conv_layer2 = nn.Conv2d(4, 12, (5, 5), 1)
-		self.max_pool2 = nn.MaxPool2d(2)
-
-		self.conv_layer3 = nn.Conv2d(12, 10, (4, 4), 1)
+		self.model = torch.nn.Sequential(
+			torch.nn.Conv2d(1, 4, (5, 5), 1),
+			torch.nn.ReLU(),
+			torch.nn.MaxPool2d(2),
+			torch.nn.Conv2d(4, 12, (5, 5), 1),
+			torch.nn.ReLU(),
+			torch.nn.MaxPool2d(2),
+			torch.nn.Conv2d(12, 10, (4, 4), 1)
+		)
 
 	# Progresses data across layers
 	def forward(self, x):
-		out = self.conv_layer1(x)
-		out = self.max_pool1(out)
-
-		out = self.conv_layer2(out)
-		out = self.max_pool2(out)
-
-		out = self.conv_layer3(out)
-
-		return out
+		return self.model(x)
 
 
 if __name__ == '__main__':
@@ -49,7 +43,7 @@ if __name__ == '__main__':
 	train_dataset = torch.utils.data.TensorDataset(data_train, label_train)
 	test_dataset = torch.utils.data.TensorDataset(data_test, label_test)
 	train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-	test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+	test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 	# on initialise le modèle et ses poids
 	model = ConvNeuralNet()
 	loss_func = torch.nn.MSELoss(reduction='sum')
