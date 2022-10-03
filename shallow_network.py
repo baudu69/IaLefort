@@ -10,6 +10,7 @@
 import gzip
 
 import torch
+from matplotlib import pyplot as plt
 
 
 class ShallowNeuralNetwork(torch.nn.Module):
@@ -53,6 +54,8 @@ if __name__ == '__main__':
 	loss_func = torch.nn.MSELoss(reduction='sum')
 	optimModel = torch.optim.SGD(model.parameters(), lr=eta)
 
+	history = []
+
 	for n in range(nb_epochs):
 		# on lit toutes les données d'apprentissage
 		for x, t in train_loader:
@@ -74,3 +77,8 @@ if __name__ == '__main__':
 			acc += torch.argmax(y, 1) == torch.argmax(t, 1)
 		# on affiche le pourcentage de bonnes réponses
 		print("Essai " + str(n+1) + "/"+str(nb_epochs)+" : " + str(acc / data_test.shape[0]))
+		history.append(float(acc / data_test.shape[0]))
+		plt.plot(history)
+		plt.axis([0, nb_epochs - 1, 0.5, 1])
+		plt.suptitle('Shallow Network : eta='+str(eta)+', hiddensize='+str(hiddenSize)+', batchsize='+str(batch_size))
+		plt.show()

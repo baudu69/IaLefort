@@ -10,6 +10,7 @@
 import gzip
 
 import torch
+from matplotlib import pyplot as plt
 from torch import nn
 
 
@@ -34,7 +35,7 @@ class ConvNeuralNet(nn.Module):
 
 if __name__ == '__main__':
 	batch_size = 5  # nombre de données lues à chaque fois
-	nb_epochs = 10  # nombre de fois que la base de données sera lue
+	nb_epochs = 5  # nombre de fois que la base de données sera lue
 	eta = 0.001  # taux d'apprentissage
 
 	# on lit les données
@@ -52,6 +53,8 @@ if __name__ == '__main__':
 	optimizer = torch.optim.SGD(model.parameters(), lr=eta)
 
 	total_step = len(train_loader)
+
+	history = []
 
 	# We use the pre-defined number of epochs to determine how many iterations to train the network on
 	for epoch in range(nb_epochs):
@@ -75,3 +78,7 @@ if __name__ == '__main__':
 			y = model(x)
 			acc += torch.argmax(y, 1) == torch.argmax(t, 1)
 		print("Essai " + str(epoch + 1) + "/" + str(nb_epochs) + " : " + str(acc / data_test.shape[0]))
+		history.append(float(acc / data_test.shape[0]))
+		plt.plot(history)
+		plt.axis([0, nb_epochs - 1, 0, 1])
+		plt.show()
