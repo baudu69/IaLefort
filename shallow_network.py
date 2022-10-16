@@ -48,6 +48,7 @@ if __name__ == '__main__':
 	test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 	# on initialise le modèle et ses poids
 	model = ShallowNeuralNetwork(data_train.shape[1], hiddenSize, label_train.shape[1])
+	print(label_train.shape[1])
 	# model.init_weight()
 
 	# on initialise l'optimiseur
